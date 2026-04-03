@@ -201,6 +201,40 @@ X-Audio-Loudnorm: I=-16:TP=-1.5:LRA=11
 }
 ```
 
+#### `WS /stream` — Real-time streaming TTS (Turbo)
+
+WebSocket endpoint for instant TTS using the Chatterbox Turbo model (350M, 1-step decoder). Text is split into sentence chunks and audio streams as each chunk generates.
+
+```
+Client → { "text": "Hello world.", "voice": "default.wav" }
+Server → { "status": "generating", "text_length": 12 }
+Server → { "status": "chunks", "count": 1 }
+Server → { "status": "chunk", "index": 0, "total": 1, "gen_time": 1.2 }
+Server → [binary: PCM16 @ 24kHz mono]
+Server → { "status": "done", "chunks": 1, "elapsed": 1.2 }
+```
+
+Audio is raw PCM16 at 24kHz, one binary frame per chunk. Client plays chunks progressively via Web Audio API.
+
+#### `GET /stream-test` — Streaming test page
+
+Standalone HTML page with text input, voice selection, waveform visualization, and download. Open in browser to test streaming TTS.
+
+#### `GET /voices` — List voice files
+
+```json
+{ "voices": ["default.wav", "custom.wav"] }
+```
+
+#### `POST /upload-voice` — Upload voice reference
+
+Multipart file upload. Accepts `.wav`, `.mp3`, `.flac`.
+
+```bash
+curl -F "file=@my-voice.wav" http://localhost:8004/upload-voice
+# → { "filename": "my-voice.wav", "size": 48000 }
+```
+
 ---
 
 ## Audio Pipeline
@@ -344,14 +378,14 @@ tools/chatterbox-pro/qa-compare/
 
 ```bash
 # Server managed by systemd
-ssh root@ai.tiden.local "systemctl restart chatterbox-pro"
-ssh root@ai.tiden.local "journalctl -u chatterbox-pro -f"
+ssh root@your-server "systemctl restart chatterbox-pro"
+ssh root@your-server "journalctl -u chatterbox-pro -f"
 
 # Check VRAM
-ssh root@ai.tiden.local "nvidia-smi"
+ssh root@your-server "nvidia-smi"
 
 # Health check
-curl http://ai.tiden.local:8004/health
+curl http://your-server:8004/health
 ```
 
 ### M1 Max (Fallback)
@@ -372,7 +406,7 @@ Differences: `use_faster_whisper=False` (needs CUDA), `num_parallel_workers=1` (
 ### Memory leak on P40
 VRAM usage grows over time. Server now runs VRAM cleanup between jobs automatically, but restart after every 2-3 videos if needed:
 ```bash
-ssh root@ai.tiden.local "systemctl restart chatterbox-pro"
+ssh root@your-server "systemctl restart chatterbox-pro"
 ```
 The `/health` endpoint reports `vram.used_pct` — restart when approaching 80%.
 
