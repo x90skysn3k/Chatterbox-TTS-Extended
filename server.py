@@ -617,13 +617,14 @@ async def stream_tts(websocket: WebSocket):
             chunk_start = time.time()
             try:
                 # Generate with minimal params for speed
+                # Build kwargs dynamically — Turbo model may not support all params
+                gen_kwargs = {"audio_prompt_path": voice_path, "temperature": 0.8}
+                import inspect
+                sig = inspect.signature(model.generate)
+                if "apply_watermark" in sig.parameters:
+                    gen_kwargs["apply_watermark"] = False
                 with torch.inference_mode():
-                    wav = model.generate(
-                        chunk,
-                        audio_prompt_path=voice_path,
-                        temperature=0.8,
-                        apply_watermark=False,
-                    )
+                    wav = model.generate(chunk, **gen_kwargs)
 
                 # Convert to PCM16 bytes
                 if wav.dim() == 1:
