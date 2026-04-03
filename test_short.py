@@ -13,7 +13,7 @@ from chatterbox.tts import ChatterboxTTS
 # Our Short narration (same one we've been testing)
 TEXT = "Your favorite trading guru makes more money from courses than from actual trading. Ninety percent of day traders lose money. Not because of bad strategies. Because of psychology. Ed Saykota turned five thousand dollars into fifteen million with SIMPLE trend following rules. No secret indicator. No five thousand dollar course. Just discipline."
 
-VOICE_PATH = "executed-edge.wav"
+VOICE_PATH = os.environ.get("DEFAULT_VOICE", "default.wav")
 OUTPUT_PATH = "/tmp/extended-test-short.wav"
 
 print("Loading model on MPS...")

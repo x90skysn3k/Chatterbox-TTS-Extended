@@ -129,7 +129,7 @@ def ensure_model():
 class TTSRequest(BaseModel):
     text: str
     voice_mode: str = "predefined"
-    predefined_voice_id: str = "executed-edge.wav"
+    predefined_voice_id: str = os.environ.get("DEFAULT_VOICE", "default.wav")
     temperature: float = 0.75
     exaggeration: float = 0.65
     cfg_weight: float = 0.4
