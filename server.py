@@ -61,9 +61,8 @@ os.makedirs(VOICES_DIR, exist_ok=True)
 os.makedirs("temp", exist_ok=True)
 os.makedirs("output", exist_ok=True)
 
-# Semaphore to allow 2 concurrent TTS jobs (P40 has 24GB VRAM, ~6GB per job)
-MAX_PARALLEL_JOBS = 2
-_generation_lock = threading.Semaphore(MAX_PARALLEL_JOBS)
+# Lock to prevent concurrent process_text_for_tts calls
+_generation_lock = threading.Lock()
 
 
 def _force_vram_cleanup():
@@ -296,7 +295,6 @@ def _run_generation(job_id, request, voice_path):
                 top_p=request.top_p,
                 repetition_penalty=request.repetition_penalty,
                 use_silero_vad=request.use_silero_vad,
-                job_id=job_id,
             )
 
         output_path = _find_output_wav(result)
